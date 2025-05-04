@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .management-container {
+            background-color: #212529;
+            border-radius: 10px;
+            padding: 30px;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-custom {
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-custom:hover {
+            transform: scale(1.05);
+        }
+        .form-control {
+            border-radius: 8px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="management-container">
+        <h2 class="text-center mb-4">Quiz Management</h2>
+
+        <form method="POST" action="{{ url_for('quiz_management') }}">
+            <!-- Subject Selection -->
+            <label for="subject_id" class="form-label">Select Subject:</label>
+            <select id="subject_id" class="form-control my-2" name="subject_id" required onchange="filterChapters()">
+                <option value="" selected disabled>Choose a subject</option>
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Chapter Selection -->
+            <label for="chapter_id" class="form-label">Select Chapter:</label>
+            <select id="chapter_id" class="form-control my-2" name="chapter_id" required>
+                <option value="" selected disabled>Choose a chapter</option>
+                {% for chapter in chapters %}
+                    <option value="{{ chapter.id }}" data-subject="{{ chapter.subject_id }}">{{ chapter.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Quiz Name -->
+            <label for="quiz_name" class="form-label">Quiz Name:</label>
+            <input type="text" id="quiz_name" class="form-control my-2" name="quiz_name" placeholder="Enter quiz name" required>
+
+
+            <!-- Quiz Date -->
+            <label for="quiz_date" class="form-label">Quiz Date:</label>
+            <input type="date" id="quiz_date" class="form-control my-2" name="quiz_date" required>
+
+            <!-- Quiz Duration -->
+            <label for="quiz_duration" class="form-label">Quiz Duration (in minutes):</label>
+            <input type="number" id="quiz_duration" class="form-control my-2" name="quiz_duration" placeholder="Enter duration in minutes" required>
+
+            <!-- Quiz Remarks -->
+            <label for="quiz_remarks" class="form-label">Quiz Remarks:</label>
+            <textarea id="quiz_remarks" class="form-control my-2" name="quiz_remarks" placeholder="Enter any additional remarks..." required></textarea>
+
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-center">
+                <button type="submit" name="action" value="add_quiz" class="btn btn-primary btn-lg btn-custom">Create Quiz</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function filterChapters() {
+        let selectedSubject = document.getElementById("subject_id").value;
+        let chapters = document.getElementById("chapter_id").options;
+
+        for (let i = 0; i < chapters.length; i++) {
+            let chapterSubject = chapters[i].getAttribute("data-subject");
+            if (chapterSubject === selectedSubject || chapters[i].value === "") {
+                chapters[i].style.display = "block";
+            } else {
+                chapters[i].style.display = "none";
+            }
+        }
+        document.getElementById("chapter_id").selectedIndex = 0; // Reset selection
+    }
+</script>
+</body>
+</html>

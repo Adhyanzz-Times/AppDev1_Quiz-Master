@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Quiz Master</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-container {
+            background-color: #343a40;
+            border-radius: 10px;
+            padding: 30px;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-custom {
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-custom:hover {
+            transform: scale(1.05);
+        }
+        .chart-container {
+            background-color: #495057;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .form-control, .form-select {
+            margin-bottom: 10px;
+        }
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #495057;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+        }
+        .nav-buttons a {
+            margin-right: 8px;
+        }
+        .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger {
+            color: white !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="dashboard-container">
+            <!-- Logout Button -->
+            <div class="position-absolute top-0 end-0 mt-3 me-3">
+                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-custom">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+            
+            <h2 class="text-center mb-4">Quiz Master V1 - Admin Dashboard</h2>
+            
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-center mb-4 nav-buttons">
+                <a href="{{ url_for('chapter_management') }}" class="btn btn-info me-2 btn-custom">
+                    <i class="bi bi-journals"></i> Manage Chapters
+                </a>
+                <a href="{{ url_for('quiz_management') }}" class="btn btn-success me-2 btn-custom">
+                    <i class="bi bi-question-diamond"></i> Manage Quizzes
+                </a>
+                <a href="{{ url_for('question_management') }}" class="btn btn-primary me-2 btn-custom">
+                    <i class="bi bi-question-circle"></i> Manage Questions
+                </a>
+                <a href="{{ url_for('edit_delete_quiz') }}" class="btn btn-warning me-2 btn-custom">
+                    <i class="bi bi-pencil-square"></i> Edit/Delete Quiz
+                </a>
+                <a href="{{ url_for('edit_delete_question') }}" class="btn btn-danger btn-custom">
+                    <i class="bi bi-x-circle"></i> Edit/Delete Questions
+                </a>
+            </div>
+            
+            <div class="row">
+                <!-- Subject Management -->
+                <div class="col-md-6 mb-4">
+                    <h4>Subject Management</h4>
+                    <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                        <select class="form-select my-2" name="subject_id">
+                            <option selected>Choose a subject to edit</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" class="form-control my-2" name="subject_name" placeholder="Enter Subject Name" required>
+                        <textarea class="form-control my-2" name="subject_description" placeholder="Enter Subject Description" required></textarea>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" name="action" value="add_subject" class="btn btn-primary btn-custom">
+                                <i class="bi bi-plus-square"></i> Add
+                            </button>
+                            <button type="submit" name="action" value="edit_subject" class="btn btn-warning btn-custom">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                            <button type="submit" name="action" value="delete_subject" class="btn btn-danger btn-custom">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Search -->
+                <div class="col-md-6 mb-4">
+                    <h4>Search</h4>
+                    <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                        <div class="input-group my-2">
+                            <input type="text" class="form-control" name="search_query" placeholder="Search...">
+                            <button type="submit" class="btn btn-primary" name="action" value="search_all">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                    <div class="search-results">
+                        {% if search_results %}
+                            <ul>
+                                {% for item in search_results %}
+                                    {% if item['type'] == 'user' %}
+                                        <li>User: {{ item['name'] }} ({{ item['email'] }})</li>
+                                    {% elif item['type'] == 'quiz' %}
+                                        <li>Quiz: {{ item['name'] }} (Chapter: {{ item['chapter_name'] }})</li>
+                                    {% elif item['type'] == 'chapter' %}
+                                        <li>Chapter: {{ item['name'] }} (Subject: {{ item['subject_name'] }})</li>
+                                    {% elif item['type'] == 'subject' %}
+                                        <li>Subject: {{ item['name'] }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-white">Search results will appear here.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Summary Charts</h4>
+                    <div class="chart-container">
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('summaryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Subjects', 'Chapters', 'Quizzes', 'Users'],
+                datasets: [{
+                    label: 'Summary',
+                    data: JSON.parse('{{ [subjects|length, chapters_count, quizzes_count, users_count]|tojson|safe }}'),
+                    backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

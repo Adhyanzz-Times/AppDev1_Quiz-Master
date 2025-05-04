@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="border border-primary rounded p-4 bg-black shadow position-relative">
+            <h4 class="text-white">Chapter Management</h4>
+            
+            <!-- Subject Selection Form -->
+            <form method="POST" action="{{ url_for('chapter_management') }}" id="subjectForm">
+                <select class="form-control my-2" name="subject_id" id="subjectSelect" onchange="this.form.submit()">
+                    <option value="" {% if not selected_subject_id %}selected{% endif %}>Choose a subject</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|string %}selected{% endif %}>
+                            {{ subject.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <!-- Chapter Management Form -->
+            <form method="POST" action="{{ url_for('chapter_management') }}">
+                <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+                
+                <select class="form-control my-2" name="chapter_id" id="chapterSelect" onchange="updateChapterFields(this)">
+                    <option value="">Choose a chapter to edit/delete</option>
+                    {% for chapter in chapters %}
+                        <option value="{{ chapter.id }}" data-name="{{ chapter.name }}" data-description="{{ chapter.description }}">
+                            {{ chapter.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <input type="text" class="form-control my-2" name="chapter_name" id="chapterName" placeholder="Chapter Name" required>
+                <textarea class="form-control my-2" name="chapter_description" id="chapterDescription" placeholder="Chapter Description" required></textarea>
+
+                <div class="d-flex justify-content-between">
+                    <button type="submit" name="action" value="add_chapter" class="btn btn-primary">Add</button>
+                    <button type="submit" name="action" value="edit_chapter" class="btn btn-warning">Edit</button>
+                    <button type="submit" name="action" value="delete_chapter" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateChapterFields(select) {
+            var option = select.options[select.selectedIndex];
+            document.getElementById('chapterName').value = option.getAttribute('data-name') || '';
+            document.getElementById('chapterDescription').value = option.getAttribute('data-description') || '';
+        }
+    </script>
+</body>
+</html>

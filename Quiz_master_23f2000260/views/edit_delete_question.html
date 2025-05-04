@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit/Delete Question</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="border border-primary rounded p-4 bg-black shadow position-relative">
+            <h4 class="text-white">Edit/Delete Question</h4>
+            
+            <!-- Selection Form -->
+            <form method="POST" action="{{ url_for('edit_delete_question') }}" id="selectionForm">
+                <select class="form-control my-2" name="subject_id" id="subjectSelect">
+                    <option value="">Choose a subject</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|string %}selected{% endif %}>
+                            {{ subject.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select class="form-control my-2" name="chapter_id" id="chapterSelect">
+                    <option value="">Choose a chapter</option>
+                    {% for chapter in chapters %}
+                        <option value="{{ chapter.id }}" {% if selected_chapter_id == chapter.id|string %}selected{% endif %}>
+                            {{ chapter.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select class="form-control my-2" name="quiz_id" id="quizSelect">
+                    <option value="">Choose a quiz</option>
+                    {% for quiz in quizzes %}
+                        <option value="{{ quiz.id }}" {% if selected_quiz_id == quiz.id|string %}selected{% endif %}>
+                            {{ quiz.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <!-- Question Management Form -->
+            <form method="POST" action="{{ url_for('edit_delete_question') }}" id="questionForm">
+                <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+                <input type="hidden" name="chapter_id" value="{{ selected_chapter_id }}">
+                <input type="hidden" name="quiz_id" value="{{ selected_quiz_id }}">
+                
+                <select class="form-control my-2" name="question_id" id="questionSelect">
+                    <option value="">Choose a question to edit/delete</option>
+                    {% for question in questions %}
+                        <option 
+                            value="{{ question.id }}" 
+                            data-text="{{ question.question_statement | default('') }}" 
+                            data-answer="{{ question.correct_option | default('') }}"
+                            data-option1="{{ question.option1 | default('') }}"
+                            data-option2="{{ question.option2 | default('') }}"
+                            data-option3="{{ question.option3 | default('') }}"
+                            data-option4="{{ question.option4 | default('') }}">
+                            {{ question.question_statement }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <textarea class="form-control my-2" name="question_text" id="questionText" placeholder="Question Text" required></textarea>
+
+                <input type="text" class="form-control my-2" name="option1" id="option1" placeholder="Option 1" required>
+                <input type="text" class="form-control my-2" name="option2" id="option2" placeholder="Option 2" required>
+                <input type="text" class="form-control my-2" name="option3" id="option3" placeholder="Option 3" required>
+                <input type="text" class="form-control my-2" name="option4" id="option4" placeholder="Option 4" required>
+
+                <select class="form-control my-2" name="question_answer" id="questionAnswer">
+                    <option value="1">Option 1</option>
+                    <option value="2">Option 2</option>
+                    <option value="3">Option 3</option>
+                    <option value="4">Option 4</option>
+                </select>
+
+                <div class="d-flex justify-content-between">
+                    <button type="submit" name="action" value="edit_question" class="btn btn-warning">Edit</button>
+                    <button type="submit" name="action" value="delete_question" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- jQuery and Script -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Update selection on dropdown change
+            $('#subjectSelect').change(function () {
+                updateSelection('subject');
+            });
+
+            $('#chapterSelect').change(function () {
+                updateSelection('chapter');
+            });
+
+            $('#quizSelect').change(function () {
+                updateSelection('quiz');
+            });
+
+            function updateSelection(level) {
+                var formData = $('#selectionForm').serialize();
+                $.post("{{ url_for('edit_delete_question') }}", formData, function (data) {
+                    $('#chapterSelect').html($(data).find('#chapterSelect').html());
+                    $('#quizSelect').html($(data).find('#quizSelect').html());
+                    $('#questionSelect').html($(data).find('#questionSelect').html());
+
+                    if (level === 'subject') {
+                        $('#chapterSelect').val('');
+                        $('#quizSelect').val('');
+                    } else if (level === 'chapter') {
+                        $('#quizSelect').val('');
+                    }
+
+                    // Clear question fields
+                    $('#questionSelect').val('');
+                    $('#questionText').val('');
+                    $('#option1').val('');
+                    $('#option2').val('');
+                    $('#option3').val('');
+                    $('#option4').val('');
+                    $('#questionAnswer').val('');
+                });
+            }
+
+            // Populate question text and options when a question is selected
+            $('#questionSelect').change(function () {
+                var option = this.options[this.selectedIndex];
+                $('#questionText').val(option.getAttribute('data-text') || '');
+                $('#option1').val(option.getAttribute('data-option1') || '');
+                $('#option2').val(option.getAttribute('data-option2') || '');
+                $('#option3').val(option.getAttribute('data-option3') || '');
+                $('#option4').val(option.getAttribute('data-option4') || '');
+                $('#questionAnswer').val(option.getAttribute('data-answer') || '');
+            });
+        });
+    </script>
+</body>
+</html>

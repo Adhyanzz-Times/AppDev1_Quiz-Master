@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .management-container {
+            background-color: #212529;
+            border-radius: 10px;
+            padding: 30px;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .btn-custom {
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-custom:hover {
+            transform: scale(1.05);
+        }
+        .form-control {
+            border-radius: 8px;
+        }
+        .question-list-container {
+            margin-top: 20px;
+            background-color: #343a40; /* Darker background for contrast */
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="management-container">
+        <h2 class="text-center mb-4">Question Management</h2>
+
+        <form method="POST" action="{{ url_for('question_management') }}">
+            <!-- Subject Selection -->
+            <label for="subject_id" class="form-label">Select Subject:</label>
+            <select id="subject_id" class="form-control my-2" name="subject_id" onchange="filterQuizzes()">
+                <option value="" selected disabled>Choose a subject</option>
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Quiz Selection -->
+            <label for="quiz_name" class="form-label">Select Quiz:</label>
+            <select id="quiz_name" class="form-control my-2" name="quiz_name">
+                <option value="" selected disabled>Choose a quiz</option>
+                {% for quiz in quizzes %}
+                    <option value="{{ quiz.name }}">{{ quiz.name }} ({{ quiz.chapter.name }}: {{ quiz.date_of_quiz }})</option>
+                {% endfor %}
+            </select>
+
+
+            <!-- Question Statement -->
+            <label for="question_statement" class="form-label">Question Statement:</label>
+            <textarea id="question_statement" class="form-control my-2" name="question_statement" placeholder="Enter the question here..." required></textarea>
+
+            <!-- Options -->
+            <label class="form-label">Options:</label>
+            <input type="text" class="form-control my-2" name="option1" placeholder="Option 1" required>
+            <input type="text" class="form-control my-2" name="option2" placeholder="Option 2" required>
+            <input type="text" class="form-control my-2" name="option3" placeholder="Option 3" required>
+            <input type="text" class="form-control my-2" name="option4" placeholder="Option 4" required>
+
+            <!-- Correct Answer -->
+            <label for="correct_option" class="form-label">Select Correct Answer:</label>
+            <select id="correct_option" class="form-control my-2" name="correct_option">
+                <option value="" selected disabled>Choose correct option</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+                <option value="4">Option 4</option>
+            </select>
+
+            <!-- Submit Button -->
+            <div class="d-flex justify-content-center">
+                <button type="submit" name="action" value="add_question" class="btn btn-primary btn-lg btn-custom">Add Question</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function filterQuizzes() {
+        let selectedSubject = document.getElementById("subject_id").value;
+        let quizzes = document.getElementById("quiz_id").options;
+
+        for (let i = 0; i < quizzes.length; i++) {
+            let quizSubject = quizzes[i].getAttribute("data-subject");
+            if (quizSubject === selectedSubject || quizzes[i].value === "") {
+                quizzes[i].style.display = "block";
+            } else {
+                quizzes[i].style.display = "none";
+            }
+        }
+        document.getElementById("quiz_id").selectedIndex = 0; // Reset selection
+    }
+</script>
+
+</body>
+</html>
